@@ -2,7 +2,15 @@
 // domain models. Handlers call these methods and never touch the pool directly.
 package queries
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// ErrNotFound is returned by Get* methods when the requested entity does not
+// exist. Handlers translate this into HTTP 404.
+var ErrNotFound = errors.New("queries: not found")
 
 // Queries is the entry point. Construct with New(pool) and inject into the API.
 type Queries struct {

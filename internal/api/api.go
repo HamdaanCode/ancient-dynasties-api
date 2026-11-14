@@ -32,6 +32,17 @@ func (a *API) Router() http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/civilizations", a.listCivilizations)
+
+		r.Route("/dynasties", func(r chi.Router) {
+			r.Get("/", a.listDynasties)
+			r.Get("/{slug}", a.getDynasty)
+			r.Get("/{slug}/rulers", a.listDynastyRulers)
+		})
+
+		r.Route("/rulers", func(r chi.Router) {
+			r.Get("/", a.listRulers)
+			r.Get("/{slug}", a.getRuler)
+		})
 	})
 
 	return r
