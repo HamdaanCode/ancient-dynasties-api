@@ -1,0 +1,11 @@
+BEGIN;
+
+DROP TABLE IF EXISTS rulers_places;
+DROP TABLE IF EXISTS rulers_events;
+DROP TABLE IF EXISTS places;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS rulers;
+DROP TABLE IF EXISTS dynasties;
+DROP TABLE IF EXISTS civilizations;
+
+COMMIT;

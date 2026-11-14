@@ -1,0 +1,33 @@
+# build artefacts
+bin/
+*.exe
+
+# Go
+*.test
+*.out
+
+# env
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Postgres volume (docker-compose)
+pgdata/
+
+# Terraform (planned Phase 3)
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.tfvars
+!*.tfvars.example
+
+# AWS creds
+.aws/
