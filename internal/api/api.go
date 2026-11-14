@@ -42,6 +42,8 @@ func (a *API) Router() http.Handler {
 		r.Route("/rulers", func(r chi.Router) {
 			r.Get("/", a.listRulers)
 			r.Get("/{slug}", a.getRuler)
+			r.Get("/{slug}/ancestors", a.getAncestors)
+			r.Get("/{slug}/successors", a.getSuccessors)
 		})
 	})
 

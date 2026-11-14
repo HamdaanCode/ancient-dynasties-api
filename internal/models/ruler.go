@@ -25,3 +25,10 @@ type Ruler struct {
 	Description   *string    `json:"description,omitempty"`
 	Dynasty       DynastyRef `json:"dynasty"`
 }
+
+// RulerLineage is one node in a walk through a ruler's ancestors or successors.
+// Depth 0 is the ruler the walk started from, 1 is one step away, and so on.
+type RulerLineage struct {
+	Ruler
+	Depth int32 `json:"depth"`
+}
