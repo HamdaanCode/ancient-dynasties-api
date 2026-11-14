@@ -45,6 +45,9 @@ func (a *API) Router() http.Handler {
 			r.Get("/{slug}/ancestors", a.getAncestors)
 			r.Get("/{slug}/successors", a.getSuccessors)
 		})
+
+		r.Get("/events", a.listEvents)
+		r.Get("/search", a.searchHandler)
 	})
 
 	return r
