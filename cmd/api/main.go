@@ -1,49 +1,54 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/HamdaanCode/ancient-dynasties-api/internal/api"
+	"github.com/HamdaanCode/ancient-dynasties-api/internal/db"
+	"github.com/HamdaanCode/ancient-dynasties-api/internal/db/queries"
 )
 
 func main() {
-	r := chi.NewRouter()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(10 * time.Second))
+	dsn := envOr("DATABASE_URL", "postgres://dynasties:dynasties@localhost:5432/dynasties?sslmode=disable")
+	pool, err := db.NewPool(ctx, dsn)
+	if err != nil {
+		log.Fatalf("db pool: %v", err)
+	}
+	defer pool.Close()
+	log.Printf("connected to %s", redactDSN(dsn))
 
-	r.Get("/healthz", healthz)
+	a := &api.API{Q: queries.New(pool)}
 
 	addr := ":" + envOr("PORT", "8080")
-	log.Printf("ancient-dynasties-api listening on %s", addr)
-
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           r,
+		Handler:           a.Router(),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("server exited: %v", err)
-	}
-}
 
-func healthz(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
+	go func() {
+		log.Printf("ancient-dynasties-api listening on %s", addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server exited: %v", err)
+		}
+	}()
 
-func writeJSON(w http.ResponseWriter, status int, body any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		log.Printf("writeJSON encode error: %v", err)
+	<-ctx.Done()
+	log.Printf("shutdown signal received")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("graceful shutdown failed: %v", err)
 	}
 }
 
@@ -52,4 +57,16 @@ func envOr(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// redactDSN hides the password in a postgres DSN before logging it.
+func redactDSN(dsn string) string {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "<unparseable DSN>"
+	}
+	if _, hasPass := u.User.Password(); hasPass {
+		u.User = url.UserPassword(u.User.Username(), "***")
+	}
+	return u.String()
 }
