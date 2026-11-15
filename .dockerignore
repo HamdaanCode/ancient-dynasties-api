@@ -1,0 +1,35 @@
+# version control
+.git
+.github
+.gitignore
+
+# local artefacts
+bin/
+*.exe
+*.test
+*.out
+
+# docs that should not be in the build context
+*.md
+ROADMAP.md
+README.md
+
+# postgres volume (docker-compose local dev)
+pgdata/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# terraform (Phase 9)
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.tfvars
+
+# the plan doc lives in CV work, not the repo
+NEXT_SESSION.md

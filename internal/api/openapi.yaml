@@ -1,0 +1,474 @@
+openapi: 3.1.0
+info:
+  title: Ancient Dynasties API
+  description: |
+    A public REST API serving structured data on ancient rulers, dynasties,
+    battles and cross-civilisation timelines. Starting with Mesopotamia
+    (Sumer, Akkad, Babylon, Neo-Babylon) and extending to further civilisations
+    one seed file at a time.
+
+    Year values use integers with BCE encoded as negative, so Sargon of Akkad
+    (c.2334 BCE) is `-2334`.
+  version: 0.1.0
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: meta
+  - name: civilizations
+  - name: dynasties
+  - name: rulers
+  - name: events
+  - name: search
+
+paths:
+
+  /healthz:
+    get:
+      summary: Health check
+      tags: [meta]
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /v1/civilizations:
+    get:
+      summary: List all civilizations
+      tags: [civilizations]
+      responses:
+        "200":
+          description: Array of civilizations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Civilization"
+
+  /v1/dynasties:
+    get:
+      summary: List dynasties
+      tags: [dynasties]
+      parameters:
+        - name: civilization
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by civilization slug (e.g. `mesopotamia`)
+      responses:
+        "200":
+          description: Array of dynasties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dynasty"
+
+  /v1/dynasties/{slug}:
+    get:
+      summary: Get a single dynasty by slug
+      tags: [dynasties]
+      parameters:
+        - $ref: "#/components/parameters/DynastySlug"
+      responses:
+        "200":
+          description: One dynasty
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dynasty"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/dynasties/{slug}/rulers:
+    get:
+      summary: List every ruler in a given dynasty
+      tags: [dynasties]
+      parameters:
+        - $ref: "#/components/parameters/DynastySlug"
+      responses:
+        "200":
+          description: Array of rulers in reign order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ruler"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/rulers:
+    get:
+      summary: List rulers
+      tags: [rulers]
+      parameters:
+        - name: civilization
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by civilization slug
+        - name: dynasty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by dynasty slug
+      responses:
+        "200":
+          description: Array of rulers in reign order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ruler"
+
+  /v1/rulers/{slug}:
+    get:
+      summary: Get a single ruler by slug
+      tags: [rulers]
+      parameters:
+        - $ref: "#/components/parameters/RulerSlug"
+      responses:
+        "200":
+          description: One ruler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ruler"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/rulers/{slug}/ancestors:
+    get:
+      summary: Walk a ruler's father lineage via recursive CTE
+      description: |
+        Returns the ruler and each known father in order. `depth` is the number
+        of generations away from the starting ruler. Stops when a ruler with no
+        known father is reached.
+      tags: [rulers]
+      parameters:
+        - $ref: "#/components/parameters/RulerSlug"
+      responses:
+        "200":
+          description: Ordered array from the starting ruler back through fathers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RulerLineage"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/rulers/{slug}/successors:
+    get:
+      summary: Walk a ruler's successor chain via recursive CTE
+      description: |
+        Returns the ruler and each successor in reign order. `depth` is the
+        number of steps forward from the starting ruler. Stops when a ruler
+        with no known successor is reached.
+      tags: [rulers]
+      parameters:
+        - $ref: "#/components/parameters/RulerSlug"
+      responses:
+        "200":
+          description: Ordered array from the starting ruler forward through successors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RulerLineage"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/events:
+    get:
+      summary: List historical events in a given year range
+      tags: [events]
+      parameters:
+        - name: from_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Inclusive lower bound, BCE as negative (e.g. `-2500`)
+        - name: to_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Inclusive upper bound, BCE as negative
+      responses:
+        "200":
+          description: Chronologically ordered events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /v1/search:
+    get:
+      summary: Search rulers and dynasties
+      description: |
+        Case-insensitive substring match against ruler names, dynasty names
+        and their descriptions.
+      tags: [search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search term (minimum 1 char)
+      responses:
+        "200":
+          description: Grouped search hits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+components:
+
+  parameters:
+    DynastySlug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Dynasty slug (e.g. `akkadian`, `ur-iii`, `old-babylonian`)
+    RulerSlug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Ruler slug (e.g. `sargon-of-akkad`, `hammurabi`, `nebuchadnezzar-ii`)
+
+  schemas:
+
+    Civilization:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id:
+          type: integer
+          format: int32
+        slug:
+          type: string
+          example: mesopotamia
+        name:
+          type: string
+          example: Mesopotamia
+        region:
+          type: string
+          nullable: true
+        era_start_year:
+          type: integer
+          format: int32
+          nullable: true
+          description: BCE as negative (e.g. `-3500`)
+        era_end_year:
+          type: integer
+          format: int32
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    CivilizationRef:
+      type: object
+      required: [slug, name]
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+
+    Dynasty:
+      type: object
+      required: [id, slug, name, civilization]
+      properties:
+        id:
+          type: integer
+          format: int32
+        slug:
+          type: string
+          example: akkadian
+        name:
+          type: string
+          example: Akkadian Empire
+        founder_name:
+          type: string
+          nullable: true
+        start_year:
+          type: integer
+          format: int32
+          nullable: true
+        end_year:
+          type: integer
+          format: int32
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        civilization:
+          $ref: "#/components/schemas/CivilizationRef"
+
+    DynastyRef:
+      type: object
+      required: [slug, name, civilization]
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        civilization:
+          $ref: "#/components/schemas/CivilizationRef"
+
+    Ruler:
+      type: object
+      required: [id, slug, name, is_approximate, dynasty]
+      properties:
+        id:
+          type: integer
+          format: int32
+        slug:
+          type: string
+          example: sargon-of-akkad
+        name:
+          type: string
+          example: Sargon of Akkad
+        name_native:
+          type: string
+          nullable: true
+          example: Šarru-kīn
+        reign_start:
+          type: integer
+          format: int32
+          nullable: true
+          description: BCE as negative (e.g. `-2334`)
+        reign_end:
+          type: integer
+          format: int32
+          nullable: true
+        is_approximate:
+          type: boolean
+        predecessor_id:
+          type: integer
+          format: int32
+          nullable: true
+        successor_id:
+          type: integer
+          format: int32
+          nullable: true
+        father_id:
+          type: integer
+          format: int32
+          nullable: true
+        mother_id:
+          type: integer
+          format: int32
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        dynasty:
+          $ref: "#/components/schemas/DynastyRef"
+
+    RulerLineage:
+      allOf:
+        - $ref: "#/components/schemas/Ruler"
+        - type: object
+          required: [depth]
+          properties:
+            depth:
+              type: integer
+              format: int32
+              description: Number of steps from the starting ruler (0 = the ruler itself)
+
+    Event:
+      type: object
+      required: [id, slug, name, event_type]
+      properties:
+        id:
+          type: integer
+          format: int32
+        slug:
+          type: string
+          example: fall-of-babylon
+        name:
+          type: string
+          example: Fall of Babylon
+        event_type:
+          type: string
+          example: battle
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    SearchResult:
+      type: object
+      required: [query, rulers, dynasties]
+      properties:
+        query:
+          type: string
+        rulers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ruler"
+        dynasties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Dynasty"
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+  responses:
+    NotFound:
+      description: Entity not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

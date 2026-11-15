@@ -29,6 +29,8 @@ func (a *API) Router() http.Handler {
 	r.Use(middleware.Timeout(10 * time.Second))
 
 	r.Get("/healthz", healthz)
+	r.Get("/openapi.yaml", a.serveOpenAPISpec)
+	r.Get("/docs", a.serveDocs)
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/civilizations", a.listCivilizations)
