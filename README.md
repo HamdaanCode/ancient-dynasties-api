@@ -4,7 +4,7 @@
 
 A public REST API serving structured data on ancient rulers, dynasties and events across world civilisations. Built in Go with Postgres, Docker and OpenAPI, deployed through GitHub Actions CI.
 
-Currently seeded with **Mesopotamia** (Sumer / Akkad / Babylon / Neo-Babylon) and **Ancient Egypt** (Old Kingdom through Ptolemaic). Designed so additional civilisations are a seed-file drop-in, no code changes.
+Currently seeded with **Mesopotamia** (Sumer / Akkad / Babylon / Neo-Babylon), **Ancient Egypt** (Old Kingdom through Ptolemaic) and **Rome** (Kingdom through early Julio-Claudian). Designed so additional civilisations are a seed-file drop-in, no code changes.
 
 ## What this is (and what it is for)
 
@@ -14,6 +14,7 @@ Most grad portfolio projects are a todo list or a weather app. This one is a bac
 - Recursive SQL for lineage queries (walk Naram-Sin's ancestors back three generations with one query)
 - Full-text search backed by a Postgres `gin` index
 - 22+ integration tests running real Postgres per-run via testcontainers
+- Hand-curated data covering 3 civilisations, 10 dynasties and 41 rulers
 - A 20.7MB distroless Docker image built in a multi-stage Dockerfile
 - CI on every push to main
 - An OpenAPI 3.1 spec served at `/openapi.yaml` with a Swagger UI at `/docs`
@@ -129,7 +130,8 @@ Makefile                        convenience targets (up / down / migrate / seed 
 migrations/                     numbered up/down SQL migrations
 seed/
 ├── mesopotamia.sql             16 rulers across 4 dynasties
-└── egypt.sql                   15 rulers across 4 dynasties
+├── egypt.sql                   15 rulers across 4 dynasties
+└── rome.sql                    10 rulers across 2 dynasties
 ROADMAP.md                      step-by-step plan from scratch to v1
 ```
 
@@ -148,7 +150,7 @@ v1 shipped: both civilisations, every endpoint, CI green on every push, Docker i
 Next:
 - AWS deploy via Terraform (RDS + ECS Fargate + ALB)
 - OpenTelemetry → CloudWatch wiring
-- Han China, Rome and Persia seed files
+- Han China and Achaemenid Persia seed files
 
 ## Attribution
 
