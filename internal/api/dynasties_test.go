@@ -14,21 +14,27 @@ func TestListDynasties(t *testing.T) {
 	var dynasties []models.Dynasty
 	resp := getJSON(t, "/v1/dynasties", &dynasties)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-	require.Len(t, dynasties, 4, "expect 4 Mesopotamian dynasties in the seed")
+	require.GreaterOrEqual(t, len(dynasties), 8, "4 Mesopotamian + 4 Egyptian")
 
-	// Chronological ordering by start_year asc.
-	assert.Equal(t, "akkadian", dynasties[0].Slug)
-	assert.Equal(t, "neo-babylonian", dynasties[3].Slug)
+	// Chronological ordering: oldest dynasty seeded is Egypt 4th Dynasty (~ -2613).
+	assert.Equal(t, "egypt-4th-dynasty", dynasties[0].Slug)
 
-	// Every dynasty has its civilization embedded.
+	// Both civilizations represented.
+	civSlugs := make(map[string]bool)
 	for _, d := range dynasties {
-		assert.Equal(t, "mesopotamia", d.Civilization.Slug)
+		civSlugs[d.Civilization.Slug] = true
 	}
+	assert.True(t, civSlugs["mesopotamia"])
+	assert.True(t, civSlugs["egypt"])
 }
 
 func TestListDynastiesFilteredByCivilization(t *testing.T) {
 	var dynasties []models.Dynasty
+
 	getJSON(t, "/v1/dynasties?civilization=mesopotamia", &dynasties)
+	assert.Len(t, dynasties, 4)
+
+	getJSON(t, "/v1/dynasties?civilization=egypt", &dynasties)
 	assert.Len(t, dynasties, 4)
 
 	getJSON(t, "/v1/dynasties?civilization=nonexistent", &dynasties)

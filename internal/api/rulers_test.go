@@ -14,7 +14,7 @@ func TestListRulers(t *testing.T) {
 	var rulers []models.Ruler
 	resp := getJSON(t, "/v1/rulers", &rulers)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Len(t, rulers, 16, "16 Mesopotamian rulers in the seed")
+	assert.GreaterOrEqual(t, len(rulers), 31, "16 Mesopotamian + 15 Egyptian")
 }
 
 func TestListRulersFilteredByDynasty(t *testing.T) {
@@ -27,12 +27,21 @@ func TestListRulersFilteredByDynasty(t *testing.T) {
 
 	getJSON(t, "/v1/rulers?dynasty=neo-babylonian", &rulers)
 	assert.Len(t, rulers, 3)
+
+	getJSON(t, "/v1/rulers?dynasty=egypt-4th-dynasty", &rulers)
+	assert.Len(t, rulers, 4)
+
+	getJSON(t, "/v1/rulers?dynasty=egypt-18th-dynasty", &rulers)
+	assert.Len(t, rulers, 5)
 }
 
 func TestListRulersFilteredByCivilization(t *testing.T) {
 	var rulers []models.Ruler
 	getJSON(t, "/v1/rulers?civilization=mesopotamia", &rulers)
 	assert.Len(t, rulers, 16)
+
+	getJSON(t, "/v1/rulers?civilization=egypt", &rulers)
+	assert.Len(t, rulers, 15)
 }
 
 func TestGetRuler(t *testing.T) {

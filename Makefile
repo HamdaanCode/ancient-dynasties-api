@@ -53,6 +53,7 @@ migrate:
 
 seed:
 	$(PSQL) -f seed/mesopotamia.sql
+	$(PSQL) -f seed/egypt.sql
 
 db:
 	$(PSQL)

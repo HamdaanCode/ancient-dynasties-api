@@ -62,8 +62,10 @@ func TestMain(m *testing.M) {
 	if err := runSQLFile(ctx, pool, filepath.Join("..", "..", "migrations", "0001_initial_schema.up.sql")); err != nil {
 		log.Fatalf("apply migration: %v", err)
 	}
-	if err := runSQLFile(ctx, pool, filepath.Join("..", "..", "seed", "mesopotamia.sql")); err != nil {
-		log.Fatalf("apply seed: %v", err)
+	for _, seed := range []string{"mesopotamia.sql", "egypt.sql"} {
+		if err := runSQLFile(ctx, pool, filepath.Join("..", "..", "seed", seed)); err != nil {
+			log.Fatalf("apply seed %s: %v", seed, err)
+		}
 	}
 
 	a := &API{Q: queries.New(pool)}

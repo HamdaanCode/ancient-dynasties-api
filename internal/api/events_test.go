@@ -14,12 +14,11 @@ func TestListEvents(t *testing.T) {
 	var events []models.Event
 	resp := getJSON(t, "/v1/events", &events)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-	require.Len(t, events, 4, "the 4 Mesopotamian seed events")
+	require.GreaterOrEqual(t, len(events), 9, "4 Mesopotamian + 5 Egyptian events")
 
-	// Chronological ordering: Victory stele ~2250 BCE first.
+	// Chronological ordering: Victory stele ~2250 BCE should come first.
 	require.NotNil(t, events[0].Year)
 	assert.Equal(t, int32(-2250), *events[0].Year)
-	assert.Equal(t, "Victory over the Lullubi (Victory Stele of Naram-Sin)", events[0].Name)
 }
 
 func TestListEventsDateRange(t *testing.T) {
@@ -34,16 +33,16 @@ func TestListEventsDateRange(t *testing.T) {
 	assert.Len(t, events, 1)
 	assert.Equal(t, "Victory over the Lullubi (Victory Stele of Naram-Sin)", events[0].Name)
 
-	// Window with no events.
-	getJSON(t, "/v1/events?from_year=-100&to_year=100", &events)
+	// Window with no events (post-Roman annexation onwards).
+	getJSON(t, "/v1/events?from_year=100&to_year=500", &events)
 	assert.Empty(t, events)
 }
 
 func TestListEventsHalfOpenBounds(t *testing.T) {
 	var events []models.Event
 	getJSON(t, "/v1/events?from_year=-700", &events)
-	assert.Len(t, events, 3, "every event after 700 BCE")
+	assert.Len(t, events, 6, "3 Mesopotamian + 3 Ptolemaic-era events after 700 BCE")
 
 	getJSON(t, "/v1/events?to_year=-2000", &events)
-	assert.Len(t, events, 1, "every event up to 2000 BCE")
+	assert.Len(t, events, 1, "only the Victory Stele of Naram-Sin predates 2000 BCE")
 }

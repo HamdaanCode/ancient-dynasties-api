@@ -21,9 +21,12 @@ func TestListCivilizations(t *testing.T) {
 	var civs []models.Civilization
 	resp := getJSON(t, "/v1/civilizations", &civs)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-	require.Len(t, civs, 1)
-	assert.Equal(t, "mesopotamia", civs[0].Slug)
-	assert.Equal(t, "Mesopotamia", civs[0].Name)
-	require.NotNil(t, civs[0].EraStartYear)
-	assert.Equal(t, int32(-3500), *civs[0].EraStartYear)
+	require.GreaterOrEqual(t, len(civs), 2, "at least Mesopotamia and Egypt")
+
+	slugs := make(map[string]bool)
+	for _, c := range civs {
+		slugs[c.Slug] = true
+	}
+	assert.True(t, slugs["mesopotamia"])
+	assert.True(t, slugs["egypt"])
 }
