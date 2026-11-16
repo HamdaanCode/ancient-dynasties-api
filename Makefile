@@ -56,6 +56,7 @@ seed:
 	$(PSQL) -f seed/egypt.sql
 	$(PSQL) -f seed/rome.sql
 	$(PSQL) -f seed/china.sql
+	$(PSQL) -f seed/persia.sql
 
 db:
 	$(PSQL)

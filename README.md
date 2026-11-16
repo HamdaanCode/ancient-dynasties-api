@@ -4,7 +4,7 @@
 
 A public REST API serving structured data on ancient rulers, dynasties and events across world civilisations. Built in Go with Postgres, Docker and OpenAPI, deployed through GitHub Actions CI.
 
-Currently seeded with **Mesopotamia** (Sumer / Akkad / Babylon / Neo-Babylon), **Ancient Egypt** (Old Kingdom through Ptolemaic), **Rome** (Kingdom through early Julio-Claudian) and **Ancient China** (Shang through Western Han). Designed so additional civilisations are a seed-file drop-in, no code changes.
+Currently seeded with **Mesopotamia** (Sumer / Akkad / Babylon / Neo-Babylon), **Ancient Egypt** (Old Kingdom through Ptolemaic), **Rome** (Kingdom through early Julio-Claudian), **Ancient China** (Shang through Western Han) and **Persia** (Achaemenid through Sasanian). Designed so additional civilisations are a seed-file drop-in, no code changes.
 
 ## What this is (and what it is for)
 
@@ -14,7 +14,7 @@ Most grad portfolio projects are a todo list or a weather app. This one is a bac
 - Recursive SQL for lineage queries (walk Naram-Sin's ancestors back three generations with one query)
 - Full-text search backed by a Postgres `gin` index
 - 22+ integration tests running real Postgres per-run via testcontainers
-- Hand-curated data covering 4 civilisations, 14 dynasties and 51 rulers
+- Hand-curated data covering 5 civilisations, 17 dynasties and 61 rulers
 - A 20.7MB distroless Docker image built in a multi-stage Dockerfile
 - CI on every push to main
 - An OpenAPI 3.1 spec served at `/openapi.yaml` with a Swagger UI at `/docs`
@@ -132,7 +132,8 @@ seed/
 ├── mesopotamia.sql             16 rulers across 4 dynasties
 ├── egypt.sql                   15 rulers across 4 dynasties
 ├── rome.sql                    10 rulers across 2 dynasties
-└── china.sql                   10 rulers across 4 dynasties
+├── china.sql                   10 rulers across 4 dynasties
+└── persia.sql                  10 rulers across 3 dynasties
 ROADMAP.md                      step-by-step plan from scratch to v1
 ```
 
@@ -151,7 +152,7 @@ v1 shipped: both civilisations, every endpoint, CI green on every push, Docker i
 Next:
 - AWS deploy via Terraform (RDS + ECS Fargate + ALB)
 - OpenTelemetry → CloudWatch wiring
-- Achaemenid Persia seed file
+- Deeper seed data (more Flavian/Antonine Roman emperors, Han restoration, Tang, more Sasanians)
 
 ## Attribution
 
